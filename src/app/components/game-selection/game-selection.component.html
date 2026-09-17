@@ -1,0 +1,35 @@
+<div class="container">
+  <div class="header-section">
+    <img src="/theindielogo.png" alt="The Indie Market Logo" class="main-logo">
+    <h1>SELECT TARGET GAMES</h1>
+    <p>Choose up to 3 realms to trade assets.</p>
+    
+    <div class="status-bar">
+      <span class="counter" [class.maxed]="selectedCount === maxSelection">
+        SELECTED: [{{ selectedCount }}/{{ maxSelection }}]
+      </span>
+      <button 
+        class="neon-btn continue-btn" 
+        [disabled]="selectedCount === 0" 
+        (click)="continueToMarket()">
+        ACCESS MARKET &gt;&gt;
+      </button>
+    </div>
+  </div>
+
+  <div class="games-grid">
+    <div 
+      class="game-card" 
+      *ngFor="let game of games" 
+      [class.selected]="game.selected"
+      (click)="toggleSelection(game)">
+      <div class="card-overlay" *ngIf="game.selected">
+        <span class="lock-on">LOCKED ON</span>
+      </div>
+      <img [src]="game.image" [alt]="game.name" class="game-img">
+      <div class="game-info">
+        <h3>{{ game.name }}</h3>
+      </div>
+    </div>
+  </div>
+</div>
