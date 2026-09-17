@@ -1,0 +1,249 @@
+<div class="market-layout">
+  <!-- Toast Notification -->
+  <div class="toast-container" *ngIf="transactionMessage" [ngClass]="transactionStatus">
+    <div class="toast-content">{{ transactionMessage }}</div>
+  </div>
+
+  <!-- Vendor Dossier Modal -->
+  <div class="modal-overlay" *ngIf="selectedVendor" (click)="closeVendorProfile()">
+    <div class="modal-content cyber-panel vendor-panel" (click)="$event.stopPropagation()">
+      <button class="close-btn" (click)="closeVendorProfile()">[X]</button>
+      <div class="vendor-header">
+        <div class="vendor-avatar">{{ selectedVendor.avatar }}</div>
+        <div class="vendor-title">
+          <h2 class="neon-text">{{ selectedVendor.name | uppercase }}</h2>
+          <p>REP: {{ selectedVendor.reputation }} | STATUS: <span [ngClass]="{'status-online': selectedVendor.status === 'Active'}">{{ selectedVendor.status }}</span></p>
+        </div>
+      </div>
+      <div class="vendor-stats">
+        <div class="v-stat"><span>TRUST SCORE:</span> <span class="neon-text">{{ selectedVendor.trustScore }}%</span></div>
+      </div>
+      <h3 class="neon-text mt-4">CURRENT INVENTORY:</h3>
+      <ul class="vendor-items">
+        <li *ngFor="let vItem of getVendorItems(selectedVendor.name)">
+          <span>{{ vItem.name }} ({{ vItem.rarity }})</span>
+          <span class="price">{{ vItem.price }} CR</span>
+        </li>
+        <li *ngIf="getVendorItems(selectedVendor.name).length === 0" class="text-muted">NO ITEMS IN STOCK</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- Item Details Modal -->
+  <div class="modal-overlay" *ngIf="selectedItem && !selectedVendor" (click)="closeItemDetails()">
+    <div class="modal-content cyber-panel" (click)="$event.stopPropagation()" [class.glitch-item]="selectedItem.isContraband">
+      <button class="close-btn" (click)="closeItemDetails()">[X]</button>
+      
+      <div class="modal-layout">
+        <div class="modal-image-col">
+          <div class="item-img-wrapper" [ngClass]="selectedItem.rarity.toLowerCase()">
+            <img [src]="selectedItem.image" [alt]="selectedItem.name" class="modal-img">
+            <span class="rarity-badge">{{ selectedItem.rarity }}</span>
+            <div class="traded-overlay" *ngIf="selectedItem.traded">
+              <span>ACQUIRED</span>
+            </div>
+          </div>
+          <div class="weapon-indicator badge">TYPE: {{ selectedItem.weaponType | uppercase }}</div>
+        </div>
+        
+        <div class="modal-info-col">
+          <h2 class="modal-title neon-text">{{ selectedItem.name }}</h2>
+          <p class="modal-seller">Vendor: <span class="clickable-vendor" (click)="openVendorProfile(selectedItem.seller)">{{ selectedItem.seller }}</span></p>
+          
+          <div class="modal-desc">
+            <p>{{ selectedItem.description }}</p>
+          </div>
+          
+          <div class="modal-stats">
+            <h3>SYS_STATS:</h3>
+            <ul>
+              <li><span class="stat-label">DMG:</span> <span class="stat-val">{{ selectedItem.stats.damage }}</span></li>
+              <li *ngIf="selectedItem.stats.fireRate"><span class="stat-label">FIRE_RATE:</span> <span class="stat-val">{{ selectedItem.stats.fireRate }}</span></li>
+              <li *ngIf="selectedItem.stats.accuracy"><span class="stat-label">ACCURACY:</span> <span class="stat-val">{{ selectedItem.stats.accuracy }}%</span></li>
+              <li *ngIf="selectedItem.stats.durability"><span class="stat-label">DURABILITY:</span> <span class="stat-val">{{ selectedItem.stats.durability }}%</span></li>
+            </ul>
+          </div>
+          
+          <div class="modal-action">
+            <div class="modal-price">{{ selectedItem.price }} CR</div>
+            <button 
+              class="neon-btn modal-trade-btn" 
+              (click)="buyItem(selectedItem, $event)"
+              *ngIf="!selectedItem.traded">
+              AUTHORIZE TRADE
+            </button>
+            <button 
+              class="neon-btn modal-trade-btn sell-btn" 
+              (click)="sellItem(selectedItem, $event)"
+              *ngIf="selectedItem.traded">
+              LIQUIDATE (-40%)
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Sidebar for Filtering -->
+  <aside class="sidebar">
+    <div class="sidebar-brand">
+      <img src="/theindielogo.png" alt="The Indie Market Logo" class="site-logo">
+    </div>
+
+    <div class="merchant-profile">
+      <img src="/assets/sysadmin.jpg" alt="Sys Admin" class="avatar pulse-anim">
+      <div class="merchant-details">
+        <h2>BLACK MARKET</h2>
+        <p>Status: <span class="status-online" (click)="unlockContraband()" style="cursor: pointer;">ONLINE</span></p>
+      </div>
+    </div>
+
+    <div class="filter-section">
+      <h3>CATEGORIES</h3>
+      <ul class="nav-list">
+        <li *ngFor="let category of categories">
+          <button 
+            class="nav-btn" 
+            [class.active]="currentView === 'market' && activeCategory === category"
+            [class.glitch-text]="category === 'Contraband'"
+            (click)="filterByCategory(category)">
+            {{ category }}
+          </button>
+        </li>
+      </ul>
+    </div>
+
+    <div class="filter-section">
+      <h3>ACCOUNT</h3>
+      <ul class="nav-list">
+        <li>
+          <button class="nav-btn" [class.active]="currentView === 'inventory'" (click)="showInventory()">
+            MY INVENTORY
+          </button>
+        </li>
+        <li>
+          <button class="nav-btn" [class.active]="currentView === 'history'" (click)="showHistory()">
+            TRADE HISTORY
+          </button>
+        </li>
+        <li>
+          <button class="nav-btn logout-btn" (click)="logout()">
+            LOGOUT
+          </button>
+        </li>
+      </ul>
+    </div>
+  </aside>
+
+  <!-- Main Content Area -->
+  <main class="inventory-display">
+    
+    <!-- Live Ticker -->
+    <div class="ticker-wrap">
+      <div class="ticker">
+        <span class="ticker-item">{{ marketTicker }}</span>
+      </div>
+    </div>
+
+    <div class="header-bar">
+      <div class="header-title-area">
+        <h2>
+          <ng-container *ngIf="currentView === 'market'">{{ activeCategory | uppercase }}</ng-container>
+          <ng-container *ngIf="currentView === 'inventory'">MY INVENTORY</ng-container>
+          <ng-container *ngIf="currentView === 'history'">TRADE HISTORY</ng-container>
+        </h2>
+      </div>
+      
+      <!-- Search & Sort Tools (Only on Market) -->
+      <div class="market-tools" *ngIf="currentView === 'market'">
+        <input type="text" class="neon-input search-input" placeholder="QUERY ITEM..." [(ngModel)]="searchQuery" (input)="applyFilters()">
+        <select class="neon-input sort-select" [(ngModel)]="sortOption" (change)="applyFilters()">
+          <option value="none">SORT BY...</option>
+          <option value="priceAsc">PRICE: LOW > HIGH</option>
+          <option value="priceDesc">PRICE: HIGH > LOW</option>
+          <option value="damage">MAX DAMAGE</option>
+          <option value="rarity">RARITY</option>
+        </select>
+      </div>
+
+      <div class="credits">CREDITS: <span class="neon-text credit-count">{{ userCredits | number }}</span></div>
+    </div>
+
+    <!-- Grid View for Market and Inventory -->
+    <div class="items-grid" *ngIf="currentView === 'market' || currentView === 'inventory'">
+      <div 
+        class="item-card slide-up-anim" 
+        *ngFor="let item of filteredItems; let i = index" 
+        [ngClass]="item.rarity.toLowerCase()"
+        [class.glitch-item]="item.isContraband"
+        [style.animation-delay]="(i * 0.1) + 's'"
+        [class.traded-item]="item.traded && currentView === 'market'"
+        (click)="openItemDetails(item)">
+        
+        <div class="item-img-wrapper">
+          <img [src]="item.image" [alt]="item.name" class="item-img">
+          <span class="rarity-badge">{{ item.rarity }}</span>
+          <span class="type-indicator" [ngClass]="item.weaponType?.toLowerCase()">{{ item.weaponType }}</span>
+          <div class="traded-overlay" *ngIf="item.traded && currentView === 'market'">
+            <span>ACQUIRED</span>
+          </div>
+        </div>
+        
+        <div class="item-details">
+          <h4 class="item-name">{{ item.name }}</h4>
+          <p class="seller">Vendor: <span class="clickable-vendor" (click)="openVendorProfile(item.seller, $event)">{{ item.seller }}</span></p>
+          
+          <div class="action-row">
+            <span class="price">{{ item.price }} CR</span>
+            
+            <button 
+              class="neon-btn mini-btn" 
+              *ngIf="currentView === 'market'"
+              (click)="buyItem(item, $event)"
+              [disabled]="item.traded">
+              {{ item.traded ? 'OWNED' : 'TRADE' }}
+            </button>
+            
+            <button 
+              class="neon-btn mini-btn sell-btn" 
+              *ngIf="currentView === 'inventory'"
+              (click)="sellItem(item, $event)">
+              LIQUIDATE
+            </button>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Empty State -->
+      <div class="empty-state" *ngIf="filteredItems.length === 0">
+        <p *ngIf="currentView === 'market'">NO DATA FOUND</p>
+        <p *ngIf="currentView === 'inventory'">NO ITEMS IN INVENTORY</p>
+      </div>
+    </div>
+
+    <!-- History View -->
+    <div class="history-view slide-up-anim" *ngIf="currentView === 'history'">
+      <div class="history-table" *ngIf="tradeHistory.length > 0">
+        <div class="history-row header-row">
+          <span>DATE</span>
+          <span>ACTION</span>
+          <span>ITEM</span>
+          <span>CREDITS</span>
+        </div>
+        <div class="history-row" *ngFor="let log of tradeHistory">
+          <span class="history-date">{{ log.date | date:'shortTime' }}</span>
+          <span [ngStyle]="{'color': log.type === 'BUY' ? '#ff2a2a' : '#39ff14'}">{{ log.type }}</span>
+          <span class="history-item">{{ log.itemName }}</span>
+          <span class="history-price" [ngStyle]="{'color': log.type === 'BUY' ? '#ff2a2a' : '#39ff14'}">
+            {{ log.type === 'BUY' ? '-' : '+' }}{{ log.price }} CR
+          </span>
+        </div>
+      </div>
+
+      <div class="empty-state" *ngIf="tradeHistory.length === 0">
+        <p>NO TRANSACTION HISTORY FOUND</p>
+      </div>
+    </div>
+
+  </main>
+</div>

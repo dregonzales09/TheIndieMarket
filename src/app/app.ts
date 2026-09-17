@@ -1,6 +1,5 @@
 import { Component, signal } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
-import { Components } from '@the-indie-market/components';
 
 @Component({
   imports: [RouterOutlet],

@@ -1,3 +1,129 @@
 /* You can add global styles to this file, and also import other style files */
-
 @import 'tailwindcss';
+
+@font-face {
+  font-family: 'SuperIndie';
+  src: url('/fonts/SuperIndie.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+:root {
+  --bg-dark: #0a0a0c;
+  --bg-darker: #050505;
+  --bg-panel: #111116;
+  --neon-green: #39ff14;
+  --neon-green-glow: rgba(57, 255, 20, 0.6);
+  --text-main: #f0f0f0;
+  --text-muted: #888890;
+  --border-neon: 1px solid var(--neon-green);
+}
+
+body {
+  margin: 0;
+  background-color: var(--bg-dark);
+  color: var(--text-main);
+  font-family: 'SuperIndie', 'Courier New', Courier, monospace; /* Cyberpunkish feel */
+  background-image: 
+    linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.8)),
+    url('/indiebg.webp');
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed;
+}
+
+/* Base button styles */
+.neon-btn {
+  background-color: transparent;
+  color: var(--neon-green);
+  border: var(--border-neon);
+  padding: 10px 20px;
+  font-size: 1rem;
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 0 5px var(--neon-green-glow), inset 0 0 5px var(--neon-green-glow);
+  outline: none;
+}
+
+.neon-btn:hover:not(:disabled) {
+  background-color: var(--neon-green);
+  color: var(--bg-darker);
+  box-shadow: 0 0 15px var(--neon-green-glow), inset 0 0 10px var(--neon-green-glow);
+}
+
+.neon-btn:disabled {
+  border-color: #555;
+  color: #555;
+  box-shadow: none;
+  cursor: not-allowed;
+}
+
+/* Input styles */
+.neon-input {
+  background-color: var(--bg-panel);
+  border: 1px solid #333;
+  color: var(--text-main);
+  padding: 12px;
+  font-size: 1rem;
+  outline: none;
+  transition: all 0.3s ease;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.neon-input:focus {
+  border-color: var(--neon-green);
+  box-shadow: 0 0 8px var(--neon-green-glow);
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+/* Cyberpunk Scanlines */
+body::before {
+  content: "";
+  display: block;
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  right: 0;
+  background: linear-gradient(
+    to bottom,
+    rgba(0, 0, 0, 0) 50%,
+    rgba(0, 0, 0, 0.15) 50%
+  );
+  background-size: 100% 6px;
+  z-index: 9997;
+  pointer-events: none;
+}
+
+/* Moving Neon Laser Light */
+body::after {
+  content: "";
+  display: block;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 1px;
+  background: var(--neon-green);
+  box-shadow: 0 0 15px 2px var(--neon-green-glow), 0 0 30px var(--neon-green);
+  z-index: 9998;
+  pointer-events: none;
+  animation: laserScan 6s linear infinite;
+  opacity: 0.6;
+}
+
+@keyframes laserScan {
+  0% { transform: translateY(-50px); opacity: 0; }
+  5% { opacity: 0.6; }
+  95% { opacity: 0.6; }
+  100% { transform: translateY(100vh); opacity: 0; }
+}

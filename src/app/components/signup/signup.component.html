@@ -1,0 +1,71 @@
+<div class="signup-container">
+  <div class="signup-panel cyber-panel">
+      <div class="panel-header">
+        <img src="/theindielogo.png" alt="Logo" class="main-logo">
+        <h1 class="neon-text glow">INITIALIZE USER</h1>
+      </div>
+    <p class="subtitle">Join TheIndieMarket Network</p>
+
+    <form #signupForm="ngForm" (ngSubmit)="onSubmit(signupForm)">
+      <div class="form-group">
+        <label for="username">ALIAS </label>
+        <input 
+          type="text" 
+          id="username" 
+          name="username" 
+          class="neon-input" 
+          [(ngModel)]="user.username" 
+          required 
+          #username="ngModel">
+        <div *ngIf="username.invalid && username.touched" class="error-text">Alias is required.</div>
+      </div>
+
+      <div class="form-group">
+        <label for="email">COMM LINK (EMAIL) </label>
+        <input 
+          type="email" 
+          id="email" 
+          name="email" 
+          class="neon-input" 
+          [(ngModel)]="user.email" 
+          required 
+          email 
+          #email="ngModel">
+        <div *ngIf="email.invalid && email.touched" class="error-text">Valid comm link required.</div>
+      </div>
+
+      <div class="form-group">
+        <label for="password">ACCESS CODE </label>
+        <input 
+          type="password" 
+          id="password" 
+          name="password" 
+          class="neon-input" 
+          [(ngModel)]="user.password" 
+          required 
+          minlength="6"
+          #password="ngModel">
+        <div *ngIf="password.invalid && password.touched" class="error-text">Access code must be at least 6 characters.</div>
+      </div>
+
+      <div class="form-group">
+        <label for="confirmPassword">VERIFY ACCESS CODE </label>
+        <input 
+          type="password" 
+          id="confirmPassword" 
+          name="confirmPassword" 
+          class="neon-input" 
+          [(ngModel)]="user.confirmPassword" 
+          required>
+        <div *ngIf="passwordMismatch" class="error-text">Access codes do not match.</div>
+      </div>
+
+      <div class="scanning-overlay" *ngIf="isAnalyzing">
+        <div class="scan-line"></div>
+      </div>
+      <button type="submit" class="neon-btn submit-btn" [disabled]="signupForm.invalid || isAnalyzing" [class.analyzing]="isAnalyzing">
+        {{ isAnalyzing ? 'ANALYZING CREDENTIALS...' : 'ESTABLISH CONNECTION' }}
+      </button>
+    </form>
+  </div>
+</div>
